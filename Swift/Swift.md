@@ -202,24 +202,89 @@ Extension은:
 15. **Swift에서의 Type Inference(타입 추론)의 작동 원리와 효율적 사용을 위한 전략은 무엇인가요?**
     - 타입 추론이 컴파일 시간에 미치는 영향은 무엇인가요?
     - 명시적 타입 선언과 타입 추론 중 어느 경우가 더 바람직한가요?
+\
+\
+타입 추론의 작동 원리는, 변수나 상수가 선언될 때 할당된 값의 타입을 추론하고, 타입은 이후에도 변경되지 않기 때문에 다른 타입의 값이 이후에도 할당되지 않도록 방지해줍니다. 
+\
+타입을 명시하지 않고 추론하도록 하는 것은, 컴파일러가 타입을 추론하는 데에 추가적인 시간이 소요될 수 있습니다. 그렇기 때문에, 명시적으로 타입을 작성하는 것이 컴파일 성능을 높이는 데 도움이 되는 것으로 알고 있습니다. 
+
 16. **Swift의 Associated Types(연관 타입)에 대해 설명하고, 프로토콜에서 이를 사용하는 방법과 장점은 무엇인가요?**
     - 연관 타입을 사용하는 예시와 그 이점은 무엇인가요?
     - 연관 타입을 사용할 때 제네릭과의 관계는 어떻게 되나요?
+Associated type은 타입 place holder와 같은 역할을 합니다. protocol에서 사용되고 generic과 유사한 개념이며, protocol의 재사용성을 높여줍니다. 연관 타입을 사용하면 구체적인 타입 명시를 하지 않아도 되기 때문에, 여러 종류의 타입에서 범용적으로 사용되도록 protocol의 사용범위를 넓혀줍니다. 
+
 17. **Swift의 키-값 관찰(Key-Value Observing, KVO)과 프로퍼티 옵저버(Property Observer)의 차이점과 각각의 사용 시나리오는 무엇인가요?**
     - KVO를 사용할 때의 주의사항은 무엇인가요?
     - 프로퍼티 옵저버를 통해 얻을 수 있는 이점과 한계는 무엇인가요?
+\
+\
+KVO는 객체의 property의 변경 사항을 다른 객체에 알리기 위해 사용하는 cocoa programming pattern입니다. NSObject를 상속한 class에서만 KVO를 사용할 수 있습니다. KVO를 사용하려면, 해당 클래스를 NSObject를 상속하도록 하고,  관찰하고자 하는 property에 `@objc` attribute와 `dynamic` modifier를 추가해주면 됩니다. 그리고 관찰 시에는 observe method를 이용하여 원하는 action을 추가하면 됩니다. 변화가 있을 시 old value와 new value 값을 알 수 있게 됩니다. 
+\
+\
+Property Observer와의 차이는, 사용되는 위치입니다. Property observer는 타입 정의 내부에 위치하는 반면, KVO는 타입 정의 외부에서 observer를 추가할 때 사용됩니다.
+\
+\
+Property observer 사용의 이점은: class뿐만 아니라 struct에서도 사용이 가능합니다. property 선언부에서 쉽게 설정하여 이전 값, 새로운 값의 변화를 확인 가능하기 때문에 편리하다는 장점이 있습니다. 
+한계점은: Indirect Observation: Property observers observe changes to the property’s value, not the underlying data itself. For instance, if the property is a reference to an object, the observers are not triggered if the object’s properties change. & 코드가 조금 복잡해 보일 수도 있더라..
+
+
 18. **Swift의 델리게이트 패턴(Delegate Pattern)을 사용하여 컴포넌트 간 통신을 구현하는 방법은 무엇인가요?**
     - 델리게이트 패턴의 장단점은 무엇인가요?
     - 델리게이트 패턴과 노티피케이션 센터(Notification Center)를 비교했을 때의 차이점은 무엇인가요?
+     \
+     \
+     Delegate pattern은 class나 struct가 특정 행위들에 대한 수행 책임을 다른 타입의 instance에게 전가하는 디자인 패턴입니다. 전가할 행동에 대한 내용은 protocol 내 methods에 명시해줍니다. 
+     \
+     \
+     장점으로는,
+     - 수행되어야 할 이벤트들이 모두 protocol에 명시되어 있다는 점입니다. 그렇기 때문에 delegate을 지정된 객체는 반드시 정의된 이벤트들을 모두 수행하여야합니다.
+     - Delegator가 protocol에 정의된 이벤트들을 모두 수행하지 않으면 compiler가 에러를 발생시키기 때문에 조금 더 안전합니다. 
+     - protocol method가 return 값을 가질 수 있기 때문에, delegator의 method 수행 결과 값을 반환 받을 수 있습니다.
+     \
+     \
+     단점으로는,
+     - life time에 유의해야 한다는 점입니다. delegator가 메모리에서 해제된 상태인데 methods를 호출할 경우 버그가 발생할 수 있습니다.
+     \
+     \
+     Notification Center와의 차이점은 여러 가지가 있습니다.
+     - Notification center은 조금 더 간결한 코드로 객체 간 정보 전달을 할 수 있다는 장점이 있습니다. 하지만, delegation과는 다르게, observe 한 값에 대한 수행 결과를 다시 return 받을 수 없습니다. 
+     - deallocation 전에 unregister 해주어야 한다는 번거로움도 있습니다. 
+     - Compile time 체크가 없기 때문에 run time에서 예상치 못한 버그가 발생할 수 있습니다.
+     
+
+https://shinesolutions.com/2011/06/14/delegation-notification-and-observation/
+
+
 19. **Swift의 리플렉션(Reflection)과 메타 타입(MetaType)을 사용하는 경우와 주의사항은 무엇인가요?**
     - 리플렉션을 사용하는 예제는 무엇인가요?
     - 리플렉션을 사용할 때의 성능적 영향은 어떤 것이 있나요?
+
+
 20. **Swift의 커스텀 서브스크립트(Custom Subscript) 구현 방법과 사용 시의 이점은 무엇인가요?**
     - 서브스크립트를 사용하여 컬렉션 또는 클래스의 데이터 접근을 단순화하는 방법은 무엇인가요?
     - 서브스크립트 오버로딩을 사용하는 경우의 예시는 무엇인가요?
+
+    Subscript는 collection이나 sequence의 elements에 손쉽게 접근할 수 있는 방식을 만들도록 도와줍니다. Array에서 인덱스로 요소를 가져올 때 사용하는 []가 대표적인 예시입니다. Dictionary에서 [key]로 value를 읽어오거나 set하는 것 역시 subscript를 사용하는 예시입니다. 
+    \
+    \
+    Custom subscript를 만들 때는, `subscript`라는 메소드 이름으로 정의하면 됩니다. get, set 모두 정의가 가능하여 읽기 뿐만 아니라 쓰기도 가능합니다. 
+    \
+    \
+    Subscript overloading의 예시로는, 2d array에서 데이터를 불러올 때 matrix[row][column]이렇게 표시해야 하는 것을 [(row, column)]과 같은 조금 더 간편한 방식으로 변경하는 것이 있을 수 있겠습니다.
+
+    https://www.avanderlee.com/swift/custom-subscripts/
+    \
+    https://www.kodeco.com/books/swift-cookbook/v1.0/chapters/6-overload-the-subscript-operator-for-custom-swift-types
+
+
 21. **Swift에서의 비동기 이미지 로딩과 캐싱을 위한 전략은 무엇인가요?**
     - 이미지 로딩 시 성능과 메모리 관리를 최적화하는 방법은 무엇인가요?
     - 네트워크로부터 이미지를 비동기적으로 로딩하고 캐싱하는 프로세스를 설계하는 방법은 무엇인가요?
+
+
 22. **Swift의 커스텀 연산자(Custom Operator)를 정의하고 사용하는 방법은 무엇인가요?**
     - 커스텀 연산자를 사용할 때의 이점과 잠재적 위험은 무엇인가요?
     - 커스텀 연산자의 가독성과 유지보수에 미치는 영향은 어떻게 되나요?
+    \
+    \
+    Custom operator은 기존에 존재하는 연산자를 overload하거나 새로운 연산자를 정의하여 사용하는 방식을 의미합니다. 적절하게 사용하면 중복되는 연산을 조금 더 깔끔하게 표현할 수 있다는 장점이 있습니다. 정의할 때, 연산자 기호의 의미와 일맥상통하는 연산만이 수행되도록 해야 과도한 사용을 방지할 수 있다고 생각합니다. 
